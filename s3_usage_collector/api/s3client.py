@@ -158,44 +158,6 @@ class S3Client:
         )
 
         return resp
-    
-    async def set_limits(   
-            self,
-            limit_type: str,
-            limit_resource: str,
-            limit_value: int,
-            user = None, 
-            bucket = None,
-                        ):
-        
-        path = '/?ostor-limits'
-
-        if user:
-            query = {
-                'emailAddress': user
-            }
-        elif bucket:
-            query = {
-                'bucket': bucket
-            }
-        
-        else:
-            logger.warning(f'No user or bucket provided...')
-            return None
-        
-        query.update({
-            'limit-type': limit_type,
-            'limit-resource': limit_resource,
-            'limit-value': limit_value,
-        })
-
-        resp = await self._request(
-            method='PUT',
-            path=path,
-            query=query
-        )
-        
-        return resp
 
     async def get_quotas(self, user = None, bucket = None, default_user = False, default_bucket = False):
         path = '/?ostor-quotas'
