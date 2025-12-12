@@ -187,7 +187,6 @@ class UsageCollector:
             summary = self.cache.build_usage_summary(
                 received_items=received_items,
                 processed_requests=processed_requests,
-                save_to_file=True
             )
 
             if self.remove_items:
