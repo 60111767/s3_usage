@@ -1,0 +1,8 @@
+/dev
+tests*.py
+/backup_test*
+/results*
+/s3_usage_collector/results*
+/s3_usage_collector/backups*
+.env
+.idea
