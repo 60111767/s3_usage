@@ -1,16 +1,13 @@
 
 import sys
 from pathlib import Path
-
-from s3_usage_collector.data.config import CustomConfig
-
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 import asyncio
 import json
-
+from s3_usage_collector.data.config import CustomConfig
 from s3_usage_collector.tasks.usage import UsageCollector
 
 
