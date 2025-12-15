@@ -46,3 +46,18 @@ LOG_FILE = os.path.join(FILES_DIR, 'log.log')
 ERRORS_FILE = os.path.join(FILES_DIR, 'errors.log')
 
 lock = asyncio.Lock()
+
+
+class CustomConfig:
+    def __init__(self,
+                 result_dir = None,
+                 chunks_dir = None,
+                 backup_dir = None,
+                 usage_summary_file = None):
+        self.result_dir = result_dir if result_dir else RESULTS_DIR
+        self.chunks_dir = chunks_dir if chunks_dir else STATS_CHUNKS_DIR
+        self.backup_dir = backup_dir if backup_dir else USAGE_BACKUP_DIR
+        self.usage_summary_file = os.path.join(self.result_dir, usage_summary_file) if usage_summary_file else USAGE_SUMMARY_FILE
+
+    def __repr__(self):
+        return f"Result Dir: {self.result_dir} | Chunks Dir: {self.chunks_dir } | BackUp Dir: {self.backup_dir} | Usage File Name: {self.usage_summary_file}"

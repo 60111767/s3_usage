@@ -6,7 +6,7 @@ from typing import Optional
 from loguru import logger
 
 from s3_usage_collector.api.s3client import S3Client
-from s3_usage_collector.data.config import semaphore
+from s3_usage_collector.data.config import semaphore, CustomConfig
 from s3_usage_collector.utils.upload_cache import UploadCache
 
 
@@ -17,17 +17,19 @@ class UsageCollector:
                  access_key: str,
                  secret_key: str,
                  host: str,
+                 settings: CustomConfig,
                  s3_usage_period_seconds: int = 3600,
                  s3_cache_timeout_seconds: int = 600,
                  save_chunks: bool = False,
-                 remove_items: bool = False):
+                 remove_items: bool = False,
+                 ):
 
         self.s3_client = S3Client(access_key=access_key, secret_key=secret_key, endpoint=host)
         self.s3_usage_period_seconds = s3_usage_period_seconds
         self.s3_cache_timeout_seconds = s3_cache_timeout_seconds
         self.remove_items=remove_items
         self.save_chunks = save_chunks
-        self.cache = UploadCache()
+        self.cache = UploadCache(settings=settings)
 
     async def get_stats(self, obj) -> list:
         async with semaphore:
@@ -73,7 +75,6 @@ class UsageCollector:
             return data
 
     async def delete_s3_stat_object(self, obj):
-
         try:
             await self.s3_client.delete_ostor_usage_obj(obj=obj)
             logger.info(f"{self.__module__} | Success deleted s3 stat object: {obj}")
@@ -204,4 +205,3 @@ class UsageCollector:
             logger.error(f"[{self.__module__}] | S3 Collector Flow | Something went wrong | {e} ")
 
             return summary
-

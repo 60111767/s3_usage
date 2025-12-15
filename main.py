@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+from s3_usage_collector.data.config import CustomConfig
+
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
@@ -38,13 +40,26 @@ async def main():
     remove_items = params.get('S3_REMOVE_STATS_ITEMS', False)
     save_chunks = params.get('S3_SAVE_STATS_CHUNKS', False)
 
+    result_dir = params.get('RESULTS_DIR', None)
+    chunks_dir = params.get('STATS_CHUNKS_DIR', None)
+    backup_dir = params.get('USAGE_BACKUP_DIR', None)
+    usage_summary_file = params.get('USAGE_SUMMARY_FILE', None)
+
+    settings = CustomConfig(
+        result_dir=result_dir,
+        chunks_dir=chunks_dir,
+        backup_dir=backup_dir,
+        usage_summary_file=usage_summary_file
+    )
+
     s3_client = UsageCollector(
         access_key=access_key,
         secret_key=secret_key,
         host=host,
+        settings=settings,
         s3_usage_period_seconds=int(s3_usage_period_seconds),
         remove_items=remove_items,
-        save_chunks=save_chunks
+        save_chunks=save_chunks,
     )
 
     results = await s3_client.ostor_usage()

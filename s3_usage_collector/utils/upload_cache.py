@@ -4,15 +4,11 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple
 from loguru import logger
 
-from s3_usage_collector.data.config import (
-    RESULTS_DIR,
-    STATS_CHUNKS_DIR,
-    USAGE_SUMMARY_FILE,
-    USAGE_BACKUP_DIR,
-)
+from s3_usage_collector.data.config import CustomConfig
 
 class UploadCache:
-    def __init__(self):
+    def __init__(self, settings: CustomConfig):
+        self.settings = settings
         self.current_upload: Dict[str, Dict[str, float]] = {}
         self.current_stats: Dict[str, Dict] = {}
         self.current_buckets: Dict[str, dict] = {}
@@ -21,9 +17,9 @@ class UploadCache:
         self._ensure_directories()
 
     def _ensure_directories(self):
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-        os.makedirs(STATS_CHUNKS_DIR, exist_ok=True)
-        os.makedirs(USAGE_BACKUP_DIR, exist_ok=True)
+        os.makedirs(self.settings.result_dir, exist_ok=True)
+        os.makedirs(self.settings.chunks_dir, exist_ok=True)
+        os.makedirs(self.settings.backup_dir, exist_ok=True)
 
     def save_usage_summary_to_file(self, summary: dict) -> tuple[Optional[str], Optional[str]]:
 
@@ -33,10 +29,10 @@ class UploadCache:
 
         ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        backup_path = os.path.join(USAGE_BACKUP_DIR, f"usage_summary_{ts}.json")
-        results_usage_log = os.path.join(RESULTS_DIR, f"summarized_data_{ts}.json")
+        backup_path = os.path.join(self.settings.backup_dir, f"usage_summary_{ts}.json")
+        results_usage_log = os.path.join(self.settings.result_dir, f"{self.settings.usage_summary_file}_{ts}.json")
 
-        main_path = USAGE_SUMMARY_FILE
+        main_path = self.settings.usage_summary_file
 
         try:
             with open(main_path, "w", encoding="utf-8") as f:
@@ -70,7 +66,7 @@ class UploadCache:
             return None
 
         date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        upload_file = os.path.join(CHUNKS_UPLOAD_DIR, f"upload_{date_str}.json")
+        upload_file = os.path.join(self.settings.chunks_dir, f"upload_{date_str}.json")
 
         try:
             with open(upload_file, "w", encoding="utf-8") as f:
@@ -102,7 +98,7 @@ class UploadCache:
             logger.warning(f"No stats data for object '{object_name}' to save")
             return None
 
-        stats_file = os.path.join(STATS_CHUNKS_DIR, f"{object_name}.json")
+        stats_file = os.path.join(self.settings.chunks_dir, f"{object_name}.json")
 
         try:
             with open(stats_file, "w", encoding="utf-8") as f:
@@ -203,24 +199,24 @@ class UploadCache:
         self.current_buckets[bucket_name] = bucket_data.copy()
         logger.debug(f"Added bucket stats for '{bucket_name}'")
 
-    def save_bucket_stats(self, bucket_name: str) -> Optional[str]:
-        data = self.current_buckets.get(bucket_name)
-        if not data:
-            logger.warning(f"No stats data for bucket '{bucket_name}' to save")
-            return None
-
-        stats_file = os.path.join(BUCKETS_CHUNKS_DIR, f"{bucket_name}.json")
-
-        try:
-            with open(stats_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-            logger.info(f"Saved stats for bucket '{bucket_name}' to {stats_file}")
-        except Exception as e:
-            logger.error(f"Failed to save bucket stats file {stats_file}: {e}")
-            return None
-
-        del self.current_buckets[bucket_name]
-        return stats_file
-
-    def get_bucket_stats(self, bucket_name: str) -> dict:
-        return self.current_buckets.get(bucket_name, {}).copy()
+    # def save_bucket_stats(self, bucket_name: str) -> Optional[str]:
+    #     data = self.current_buckets.get(bucket_name)
+    #     if not data:
+    #         logger.warning(f"No stats data for bucket '{bucket_name}' to save")
+    #         return None
+    #
+    #     stats_file = os.path.join(BUCKETS_CHUNKS_DIR, f"{bucket_name}.json")
+    #
+    #     try:
+    #         with open(stats_file, "w", encoding="utf-8") as f:
+    #             json.dump(data, f, indent=2, ensure_ascii=False)
+    #         logger.info(f"Saved stats for bucket '{bucket_name}' to {stats_file}")
+    #     except Exception as e:
+    #         logger.error(f"Failed to save bucket stats file {stats_file}: {e}")
+    #         return None
+    #
+    #     del self.current_buckets[bucket_name]
+    #     return stats_file
+    #
+    # def get_bucket_stats(self, bucket_name: str) -> dict:
+    #     return self.current_buckets.get(bucket_name, {}).copy()
