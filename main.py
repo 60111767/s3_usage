@@ -1,9 +1,27 @@
 
 import sys
+import os
 from pathlib import Path
 
+print("=== DEBUG ENV START ===")
+print("UID:", os.getuid())
+print("CWD:", os.getcwd())
+print("__file__:", __file__)
+print("argv:", sys.argv)
+print("sys.executable:", sys.executable)
+print("sys.path:")
+for p in sys.path:
+    print("  ", p)
+print("=== DEBUG ENV END ===")
+
 BASE_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(BASE_DIR))
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+print("BASE_DIR added to sys.path:", BASE_DIR)
+print("sys.path after patch:")
+for p in sys.path:
+    print("  ", p)
 
 import asyncio
 import json
